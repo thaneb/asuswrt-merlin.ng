@@ -4,7 +4,7 @@
 
 <h3 align="center">
     <a href="https://github.com/RMerl/asuswrt-merlin/wiki/About-Asuswrt">AsusWrt Merlin</a> 
-    GNUton's builds
+    GNUton's builds with rtl8152 as kernel module
 </h3>
 
 <p align="center">
