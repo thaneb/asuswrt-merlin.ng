@@ -20,6 +20,11 @@
 #define LINUX_VERSION_SUBLEVEL (LINUX_VERSION_CODE & 0xFF)
 #endif
 
+#if LINUX_VERSION_MAJOR == 4 && LINUX_VERSION_PATCHLEVEL == 19
+    // Correct version for 4.19.x
+    #define LINUX_VERSION_SUBLEVEL 19  // Vous pouvez spécifier ici la sous-version exacte si nécessaire.
+#endif
+
 #include <linux/in.h>
 #include <linux/acpi.h>
 
