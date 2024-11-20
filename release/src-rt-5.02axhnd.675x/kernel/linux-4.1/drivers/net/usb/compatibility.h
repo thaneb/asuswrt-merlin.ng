@@ -7,6 +7,19 @@
 
 #include <linux/init.h>
 #include <linux/version.h>
+
+#ifndef LINUX_VERSION_MAJOR
+#define LINUX_VERSION_MAJOR ((LINUX_VERSION_CODE >> 16) & 0xFF)
+#endif
+
+#ifndef LINUX_VERSION_PATCHLEVEL
+#define LINUX_VERSION_PATCHLEVEL ((LINUX_VERSION_CODE >> 8) & 0xFF)
+#endif
+
+#ifndef LINUX_VERSION_SUBLEVEL
+#define LINUX_VERSION_SUBLEVEL (LINUX_VERSION_CODE & 0xFF)
+#endif
+
 #include <linux/in.h>
 #include <linux/acpi.h>
 
