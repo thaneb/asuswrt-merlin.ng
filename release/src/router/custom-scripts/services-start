@@ -79,8 +79,17 @@ ethtool -C $usb_interface rx-usecs 4
 echo "ethtool -C $usb_interface rx-usecs 4: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Modify RX and TX buffer sizes
-ethtool -G $usb_interface rx 1024 tx 512
-echo "ethtool -G $usb_interface rx 1024 tx 512: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+ethtool -G $usb_interface rx 100 tx 100
+echo "ethtool -G $usb_interface rx 100 tx 100: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+Set the rx copybreak value in bytes.
+ethtool --set-tunable $usb_interface rx-copybreak 256
+echo "ethtool --set-tunable $usb_interface rx-copybreak 256: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+Changes the pause parameters of the specified Ethernet device.
+ethtool -A $usb_interface rx off tx off (Disable flow control)
+# ethtool -A $usb_interface rx on tx off (Enable flow control)
+echo "ethtool -A $usb_interface rx off tx off (Disable flow control): $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Restart the USB interface to apply changes
 ifconfig $usb_interface down && ifconfig $usb_interface up
