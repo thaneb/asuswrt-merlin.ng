@@ -10125,4 +10125,17 @@ $(obj-y) $(obj-n) $(obj-clean) $(obj-install): dummy
 .PHONY: conf mconf oldconf kconf kmconf config menuconfig oldconfig
 .PHONY: dummy libnet libpcap
 
+# After all the build rules, copy the user scripts for runtime use
+install-scripts:
+	# Create the jffs/scripts directory in the firmware installation path
+	install -d $(INSTALLDIR)/jffs/scripts/
+
+	# Copy the scripts from the custom-scripts directory to the jffs/scripts directory
+	cp -r custom-scripts/* $(INSTALLDIR)/jffs/scripts/
+
+	# Set execute and read permissions on all the scripts
+	chmod a+rx $(INSTALLDIR)/jffs/scripts/*
+
+# Make the script copying rule a part of the install process
+install: install-scripts
 
