@@ -5,16 +5,24 @@ touch /tmp/001-services-start
 logger -t "rtl8156" "services-start: setting up USB Ethernet interface..."
 
 # Detect the USB Ethernet interface
-usb_interface=$(ip link show | awk '/eth[0-9]:.*qlen 2500/ {print $2}' | tr -d ':')
+usb_interface=$(dmesg | grep -i 'r8152' | awk '{print $3}' | grep -E 'eth[0-9]' | tail -n1 | tr -d ':')
 
 if [ -z "$usb_interface" ]; then
-    echo "No USB Ethernet interface detected with qlen 2500" >> /tmp/001-services-start
+    echo "No USB Ethernet interface detected" >> /tmp/001-services-start
     logger -t "rtl8156" "services-start: No USB Ethernet interface detected"
     exit 1
 fi
 
 logger -t "rtl8156" "services-start: detected $usb_interface"
 echo "Detected USB interface: $usb_interface" >> /tmp/001-services-start
+
+# Calculate the RPS CPU mask based on the number of cores
+ncores=$(cat /proc/cpuinfo | grep -c processor)
+rps_mask=$(( (1 << ncores) - 1 ))
+
+# Apply RPS CPU mask to the USB interface
+echo $rps_mask > /sys/class/net/$usb_interface/queues/rx-0/rps_cpus
+echo "echo $rps_mask > /sys/class/net/$usb_interface/queues/rx-0/rps_cpus: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Update nvram variables with checks to avoid duplication
 # Verify and update br0_ifnames
@@ -58,8 +66,8 @@ echo enable > /sys/class/net/$usb_interface/rtl_adv/sg_en
 echo "echo enable > /sys/class/net/$usb_interface/rtl_adv/sg_en: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Enable RPS (Receive Packet Steering)
-echo 7 > /sys/class/net/$usb_interface/queues/rx-0/rps_cpus
-echo "echo 7 > /sys/class/net/$usb_interface/queues/rx-0/rps_cpus: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+echo $rps_mask > /sys/class/net/$usb_interface/queues/rx-0/rps_cpus
+echo "echo $rps_mask > /sys/class/net/$usb_interface/queues/rx-0/rps_cpus: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Adjust RX/TX combined queues
 ethtool -L $usb_interface combined 3
