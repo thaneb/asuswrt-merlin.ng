@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# Make sure the script is indeed invoked
+touch /tmp/001-services-start
+logger -t "rtl8156" "services-start: setting up eth7..."
+
+# Update nvram variables
+nvram set br0_ifnames="$(nvram get br0_ifnames) eth7"
+echo "nvram set br0_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+nvram set lan_ifnames="$(nvram get lan_ifnames) eth7"
+echo "nvram set lan_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+nvram set wired_ifnames="$(nvram get wired_ifnames) eth7"
+echo "nvram set wired_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Add eth7 into br0
+brctl addif br0 eth7
+echo "brctl addif br0 eth7: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Set TX queue length to 2500 on eth7 and bring it up
+ifconfig eth7 txqueuelen 2500 allmulti up
+echo "ifconfig eth7 txqueuelen 2500 allmulti up: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Enable USB scatter/gather on eth7
+echo enable > /sys/class/net/eth7/rtl_adv/sg_en
+echo "echo enable > /sys/class/net/eth7/rtl_adv/sg_en: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Enable RPS (Receive Packet Steering) for 3 cores
+echo 7 > /sys/class/net/eth7/queues/rx-0/rps_cpus
+echo "echo 7 > /sys/class/net/eth7/queues/rx-0/rps_cpus: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Adjust RX/TX combined queues
+ethtool -L eth7 combined 3
+echo "ethtool -L eth7 combined 3: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Increase RX interrupt coalescing
+ethtool -C eth7 rx-usecs 4
+echo "ethtool -C eth7 rx-usecs 4: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Modify RX and TX buffer sizes
+ethtool -G eth7 rx 1024 tx 512
+echo "ethtool -G eth7 rx 1024 tx 512: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Restart eth7 interface to apply changes
+ifconfig eth7 down && ifconfig eth7 up
+echo "ifconfig eth7 down && ifconfig eth7 up: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+logger -t "rtl8156" "services-start: all done"
+date >> /tmp/001-services-start
