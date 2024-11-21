@@ -1,5 +1,6 @@
+#!/bin/sh
 
-# keep sure the script is indeed invoked
+# Makeke sure the script is indeed invoked
 touch /tmp/001-init-start
 echo "touch /tmp/001-init-start: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
 logger -t "rtl8156" "init-start: loading RTL8156 driver..."
