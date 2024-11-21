@@ -58,7 +58,8 @@ ifconfig $usb_interface txqueuelen 2500 allmulti up
 echo "ifconfig $usb_interface txqueuelen 2500 allmulti up: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Set interface speed and duplex mode
-ethtool -s $usb_interface speed 2500 duplex full
+# ethtool -s $usb_interface speed 2500 duplex full
+ethtool -s $usb_interface autoneg on advertise 0x80000000002f
 echo "ethtool -s $usb_interface speed 2500 duplex full: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Enable USB scatter/gather
