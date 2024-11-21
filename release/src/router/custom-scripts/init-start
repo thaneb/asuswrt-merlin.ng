@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Makeke sure the script is indeed invoked
+# Make sure the script is indeed invoked
 touch /tmp/001-init-start
 echo "touch /tmp/001-init-start: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
 logger -t "rtl8156" "init-start: loading RTL8156 driver..."
@@ -33,10 +33,6 @@ echo "insmod cdc_ncm: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >
 # Load cdc_mbim driver
 insmod cdc_mbim
 echo "insmod cdc_mbim: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
-
-# Force eth7 speed settings
-ethtool -s eth7 speed 2500 duplex full
-echo "ethtool -s eth7 speed 2500 duplex full: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
 
 logger -t "rtl8156" "init-start: all done"
 echo "logger -t \"rtl8156\" \"init-start: all done\": $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
