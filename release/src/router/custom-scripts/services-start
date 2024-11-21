@@ -2,47 +2,80 @@
 
 # Make sure the script is indeed invoked
 touch /tmp/001-services-start
-logger -t "rtl8156" "services-start: setting up eth7..."
+logger -t "rtl8156" "services-start: setting up USB Ethernet interface..."
 
-# Update nvram variables
-nvram set br0_ifnames="$(nvram get br0_ifnames) eth7"
-echo "nvram set br0_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
-nvram set lan_ifnames="$(nvram get lan_ifnames) eth7"
-echo "nvram set lan_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
-nvram set wired_ifnames="$(nvram get wired_ifnames) eth7"
-echo "nvram set wired_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+# Detect the USB Ethernet interface
+usb_interface=$(ip link show | awk '/eth[0-9]:.*qlen 2500/ {print $2}' | tr -d ':')
 
-# Add eth7 into br0
-brctl addif br0 eth7
-echo "brctl addif br0 eth7: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+if [ -z "$usb_interface" ]; then
+    echo "No USB Ethernet interface detected with qlen 2500" >> /tmp/001-services-start
+    logger -t "rtl8156" "services-start: No USB Ethernet interface detected"
+    exit 1
+fi
 
-# Set TX queue length to 2500 on eth7 and bring it up
-ifconfig eth7 txqueuelen 2500 allmulti up
-echo "ifconfig eth7 txqueuelen 2500 allmulti up: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+logger -t "rtl8156" "services-start: detected $usb_interface"
+echo "Detected USB interface: $usb_interface" >> /tmp/001-services-start
 
-# Enable USB scatter/gather on eth7
-echo enable > /sys/class/net/eth7/rtl_adv/sg_en
-echo "echo enable > /sys/class/net/eth7/rtl_adv/sg_en: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+# Update nvram variables with checks to avoid duplication
+# Verify and update br0_ifnames
+if ! nvram get br0_ifnames | grep -qw "$usb_interface"; then
+    nvram set br0_ifnames="$(nvram get br0_ifnames) $usb_interface"
+    echo "nvram set br0_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+else
+    echo "$usb_interface is already in br0_ifnames" >> /tmp/001-services-start
+fi
 
-# Enable RPS (Receive Packet Steering) for 3 cores
-echo 7 > /sys/class/net/eth7/queues/rx-0/rps_cpus
-echo "echo 7 > /sys/class/net/eth7/queues/rx-0/rps_cpus: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+# Verify and update lan_ifnames
+if ! nvram get lan_ifnames | grep -qw "$usb_interface"; then
+    nvram set lan_ifnames="$(nvram get lan_ifnames) $usb_interface"
+    echo "nvram set lan_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+else
+    echo "$usb_interface is already in lan_ifnames" >> /tmp/001-services-start
+fi
+
+# Verify and update wired_ifnames
+if ! nvram get wired_ifnames | grep -qw "$usb_interface"; then
+    nvram set wired_ifnames="$(nvram get wired_ifnames) $usb_interface"
+    echo "nvram set wired_ifnames: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+else
+    echo "$usb_interface is already in wired_ifnames" >> /tmp/001-services-start
+fi
+
+# Add the USB interface into br0
+brctl addif br0 $usb_interface
+echo "brctl addif br0 $usb_interface: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Set TX queue length and bring it up
+ifconfig $usb_interface txqueuelen 2500 allmulti up
+echo "ifconfig $usb_interface txqueuelen 2500 allmulti up: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Set interface speed and duplex mode
+ethtool -s $usb_interface speed 2500 duplex full
+echo "ethtool -s $usb_interface speed 2500 duplex full: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Enable USB scatter/gather
+echo enable > /sys/class/net/$usb_interface/rtl_adv/sg_en
+echo "echo enable > /sys/class/net/$usb_interface/rtl_adv/sg_en: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+
+# Enable RPS (Receive Packet Steering)
+echo 7 > /sys/class/net/$usb_interface/queues/rx-0/rps_cpus
+echo "echo 7 > /sys/class/net/$usb_interface/queues/rx-0/rps_cpus: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Adjust RX/TX combined queues
-ethtool -L eth7 combined 3
-echo "ethtool -L eth7 combined 3: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+ethtool -L $usb_interface combined 3
+echo "ethtool -L $usb_interface combined 3: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Increase RX interrupt coalescing
-ethtool -C eth7 rx-usecs 4
-echo "ethtool -C eth7 rx-usecs 4: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+ethtool -C $usb_interface rx-usecs 4
+echo "ethtool -C $usb_interface rx-usecs 4: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Modify RX and TX buffer sizes
-ethtool -G eth7 rx 1024 tx 512
-echo "ethtool -G eth7 rx 1024 tx 512: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+ethtool -G $usb_interface rx 1024 tx 512
+echo "ethtool -G $usb_interface rx 1024 tx 512: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
-# Restart eth7 interface to apply changes
-ifconfig eth7 down && ifconfig eth7 up
-echo "ifconfig eth7 down && ifconfig eth7 up: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+# Restart the USB interface to apply changes
+ifconfig $usb_interface down && ifconfig $usb_interface up
+echo "ifconfig $usb_interface down && ifconfig $usb_interface up: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 logger -t "rtl8156" "services-start: all done"
 date >> /tmp/001-services-start
