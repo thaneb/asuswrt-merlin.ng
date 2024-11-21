@@ -1,0 +1,43 @@
+
+# keep sure the script is indeed invoked
+touch /tmp/001-init-start
+echo "touch /tmp/001-init-start: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+logger -t "rtl8156" "init-start: loading RTL8156 driver..."
+echo "logger -t \"rtl8156\" \"init-start: loading RTL8156 driver...\": $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+# Unload cdc_mbim driver
+rmmod cdc_mbim
+echo "rmmod cdc_mbim: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+# Unload cdc_ncm driver
+rmmod cdc_ncm
+echo "rmmod cdc_ncm: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+# Load usbcore driver
+insmod usbcore
+echo "insmod usbcore: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+# Load usbnet driver
+insmod usbnet
+echo "insmod usbnet: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+# Load r8152 driver
+insmod r8152.ko
+echo "insmod r8152.ko: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+# Load cdc_ncm driver
+insmod cdc_ncm
+echo "insmod cdc_ncm: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+# Load cdc_mbim driver
+insmod cdc_mbim
+echo "insmod cdc_mbim: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+# Force eth7 speed settings
+ethtool -s eth7 speed 2500 duplex full
+echo "ethtool -s eth7 speed 2500 duplex full: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+
+logger -t "rtl8156" "init-start: all done"
+echo "logger -t \"rtl8156\" \"init-start: all done\": $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
+date >> /tmp/001-init-start
+echo "date: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-init-start
