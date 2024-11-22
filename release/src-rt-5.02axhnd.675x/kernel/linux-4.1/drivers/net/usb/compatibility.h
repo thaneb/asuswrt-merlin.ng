@@ -20,9 +20,6 @@
 #define LINUX_VERSION_SUBLEVEL (LINUX_VERSION_CODE & 0xFF)
 #endif
 
-#ifndef LINUX_COMPATIBILITY_H
-#define LINUX_COMPATIBILITY_H
-
 #include <linux/in.h>
 #include <linux/acpi.h>
 
