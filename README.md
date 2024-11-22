@@ -10,7 +10,7 @@
 <p align="center">
   A powerful third-party firmware designed for Asus routers.
   <br> Patching to get RTL8156gb 2.5Gbe usb ethernet adapters available as eth and not only wan (default behaviour) on GT-axe11000, RT-ac68u_v4, rt-ax68u , rt-ax86u, gt-ax11000, rt-ax88u, rt-ax92u, dsl-ax82u, rt-ax56u, rt-ax58u, rt-ax58u, rt-ax95q, rt-axe95q, tuf-ax3000, tuf-ax5400.
-  <br> Updating r8152.c version to realtek 2.18.1, replacing strscpy with strncpy r8152.c (old kernel 4.x doesn't support strscpy function)
+  <br> Updating r8152.c version to realtek v2.19.2 (2024/10/21), replacing strscpy with strncpy r8152.c (old kernel 4.x doesn't support strscpy function)
   <br> Set r8152 as kenel module. Updating github-actions.yml to use upload artifact v3.1.3 instead of v2.
   <br>
   <a href="https://github.com/RMerl/asuswrt-merlin.ng/wiki/About-Asuswrt"><strong>Explore Asus Merlin docs»</strong></a>
