@@ -20,11 +20,6 @@
 #define LINUX_VERSION_SUBLEVEL (LINUX_VERSION_CODE & 0xFF)
 #endif
 
-#if LINUX_VERSION_MAJOR == 4 && LINUX_VERSION_PATCHLEVEL == 19
-    // Correct version for 4.19.x
-    #define LINUX_VERSION_SUBLEVEL 19  // Vous pouvez spécifier ici la sous-version exacte si nécessaire.
-#endif
-
 #include <linux/in.h>
 #include <linux/acpi.h>
 
@@ -39,6 +34,8 @@
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0) */
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31) */
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,9,0)
+	#define ethtool_keee ethtool_eee
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5,19,0)
 	#define TSO_LEGACY_MAX_SIZE		65536
 	#define netif_napi_add_weight		netif_napi_add
@@ -655,6 +652,7 @@
 	}
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5,17,0) */
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5,19,0) */
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(6,9,0) */
 
 #ifndef FALSE
 	#define TRUE	1
