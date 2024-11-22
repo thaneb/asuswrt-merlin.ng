@@ -89,9 +89,10 @@ echo "ethtool --set-tunable $usb_interface rx-copybreak 256: $( [ $? -eq 0 ] && 
 # Changes the pause parameters of the specified Ethernet device.
 # Disable flow control
 ethtool -A $usb_interface rx off tx off
+echo "ethtool -A $usb_interface rx off tx off: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 # Enable flow control
 # ethtool -A $usb_interface rx on tx off
-echo "ethtool -A $usb_interface rx off tx off: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
+# echo "ethtool -A $usb_interface rx on tx off: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Restart the USB interface to apply changes
 ifconfig $usb_interface down && ifconfig $usb_interface up
