@@ -79,7 +79,7 @@ ethtool -C $usb_interface rx-usecs 4
 echo "ethtool -C $usb_interface rx-usecs 4: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Modify RX and TX buffer sizes
-ethtool -G $usb_interface rx 100 tx 100
+ethtool -G $usb_interface rx 1024 tx 512
 echo "ethtool -G $usb_interface rx 100 tx 100: $( [ $? -eq 0 ] && echo 'OK (0)' || echo 'ERROR ($?)' )" >> /tmp/001-services-start
 
 # Set the rx copybreak value in bytes.
